@@ -7,7 +7,7 @@ Please do not use this script, it makes permanent deep changes to your system!
 
 ```
 git clone https://github.com/burij/linux-setup
-cd nix-setup
+cd linux-setup
 chmod +x install.sh
 ./install.sh
 ```
