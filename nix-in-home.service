@@ -1,0 +1,11 @@
+[Unit]
+Description=Mounts nix-store im home
+
+[Service]
+User=root
+WorkingDirectory=/root
+ExecStart=mount -o bind /home/michaelburij/.nix /nix
+Restart=on-success
+
+[Install]
+WantedBy=multi-user.target
