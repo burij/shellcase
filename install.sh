@@ -12,6 +12,7 @@ sudo apt install nemo
 sudo apt install flatpak
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe
+flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe.Plugin.TexLive
 echo "preparing folders"
 mkdir /$HOME/.nix
 sudo mkdir /nix
