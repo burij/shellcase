@@ -10,6 +10,9 @@ sudo apt install libsdl2-dev
 sudo apt install mmv
 sudo apt install nemo
 sudo apt install flatpak
+sudo add-apt-repository ppa:appimagelauncher-team/stable
+sudo apt-get update
+sudo apt-get install appimagelauncher
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe
 flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe.Plugin.TexLive
