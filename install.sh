@@ -5,7 +5,7 @@ sudo apt --yes --force-yes install libsdl2-dev
 sudo apt --yes --force-yes  install mmv
 sudo apt --yes --force-yes  install nemo
 sudo apt --yes --force-yes  install flatpak
-sudo add-apt-repository ppa:appimagelauncher-team/stable
+sudo add-apt-repository -y ppa:appimagelauncher-team/stable
 sudo apt-get --yes --force-yes  update
 sudo apt-get --yes --force-yes  install appimagelauncher
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
