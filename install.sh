@@ -1,13 +1,13 @@
 #!/bin/bash
-sudo apt --yes --force-yes install apt-transport-https curl
+sudo apt --yes --allow install apt-transport-https curl
 echo "install software"
-sudo apt --yes --force-yes install libsdl2-dev
-sudo apt --yes --force-yes  install mmv
-sudo apt --yes --force-yes  install nemo
-sudo apt --yes --force-yes  install flatpak
+sudo apt --yes --allow install libsdl2-dev
+sudo apt --yes --allow  install mmv
+sudo apt --yes --allow  install nemo
+sudo apt --yes --allow  install flatpak
 sudo add-apt-repository -y ppa:appimagelauncher-team/stable
-sudo apt-get --yes --force-yes  update
-sudo apt-get --yes --force-yes  install appimagelauncher
+sudo apt-get --yes --allow  update
+sudo apt-get --yes --allow  install appimagelauncher
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe
 flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe.Plugin.TexLive
