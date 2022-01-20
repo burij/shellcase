@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo apt --yes install apt-transport-https curl
 echo "install software"
-sudo apt --yes install libsdl2-dev
+# sudo apt --yes install libsdl2-dev
 sudo apt --yes install mmv
 sudo apt --yes install nemo
 sudo apt --yes install flatpak
