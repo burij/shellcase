@@ -8,6 +8,7 @@ sudo apt install brave-browser
 echo "install additional software"
 sudo apt install libsdl2-dev
 sudo apt install mmv
+sudo apt install nemo
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe
 echo "preparing folders"
