@@ -1,16 +1,16 @@
 #!/bin/bash
-sudo apt --yes --allow install apt-transport-https curl
+sudo apt --yes install apt-transport-https curl
 echo "install software"
-sudo apt --yes --allow install libsdl2-dev
-sudo apt --yes --allow  install mmv
-sudo apt --yes --allow  install nemo
-sudo apt --yes --allow  install flatpak
+sudo apt --yes install libsdl2-dev
+sudo apt --yes install mmv
+sudo apt --yes install nemo
+sudo apt --yes install flatpak
 sudo add-apt-repository -y ppa:appimagelauncher-team/stable
-sudo apt-get --yes --allow  update
-sudo apt-get --yes --allow  install appimagelauncher
-flatpak remote-add -y --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install -y --user flathub  org.gnome.gitlab.somas.Apostrophe
-flatpak install -y --user flathub  org.gnome.gitlab.somas.Apostrophe.Plugin.TexLive
+sudo apt-get --yes update
+sudo apt-get --yes install appimagelauncher
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe
+flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe.Plugin.TexLive
 echo "preparing folders"
 mkdir /$HOME/.nix
 sudo mkdir /nix
