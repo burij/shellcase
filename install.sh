@@ -8,9 +8,9 @@ sudo apt --yes --allow  install flatpak
 sudo add-apt-repository -y ppa:appimagelauncher-team/stable
 sudo apt-get --yes --allow  update
 sudo apt-get --yes --allow  install appimagelauncher
-flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe
-flatpak install --user flathub  org.gnome.gitlab.somas.Apostrophe.Plugin.TexLive
+flatpak remote-add -y --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install -y --user flathub  org.gnome.gitlab.somas.Apostrophe
+flatpak install -y --user flathub  org.gnome.gitlab.somas.Apostrophe.Plugin.TexLive
 echo "preparing folders"
 mkdir /$HOME/.nix
 sudo mkdir /nix
