@@ -15,13 +15,31 @@ echo "preparing folders"
 mkdir /$HOME/.nix
 sudo mkdir /nix
 echo "creating deamon"
+cat <<EOF >./nix-in-home.service
+[Unit]
+Description=Mounts nix-store im home
+
+[Service]
+User=root
+WorkingDirectory=/root
+ExecStart=mount -o bind /home/michaelburij/.nix /nix
+Restart=on-success
+
+[Install]
+WantedBy=multi-user.target
+EOF
 sudo cp nix-in-home.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl start nix-in-home
 sudo systemctl enable nix-in-home
 echo "installing environment"
-cp bashrc /$HOME/.bashrc
+cd /$HOME
+touch /$HOME/.bashrc
+grep -q 'source ~/.nix-profile/etc/profile.d/nix.sh' '.bashrc' || bash -c 'echo "source ~/.nix-profile/etc/profile.d/nix.sh" >> .bashrc'
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd $SCRIPT_DIR
 sudo chown -R $USER /nix
 curl -L https://nixos.org/nix/install | sh
 source ~/.nix-profile/etc/profile.d/nix.sh
 echo "restart shell to start using nix"
+rm ./nix-in-home.service
