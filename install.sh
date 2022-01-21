@@ -16,9 +16,9 @@ mkdir /$HOME/.nix
 sudo mkdir /nix
 echo "creating deamon"
 sudo cp nix-in-home.service /etc/systemd/system/
-systemctl daemon-reload
-systemctl start nix-in-home
-systemctl enable nix-in-home
+sudo systemctl daemon-reload
+sudo systemctl start nix-in-home
+sudo systemctl enable nix-in-home
 echo "installing environment"
 cp bashrc /$HOME/.bashrc
 sudo chown -R $USER /nix
