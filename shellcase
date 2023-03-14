@@ -1,0 +1,497 @@
+#! /bin/bash
+echo "
+SHELLCASE 0.3
+Metascript for task automatisation.
+by burij
+
+Following tasks are avaible at the moment:
+1. Install base software package
+2. Install OnlyOffice
+3. Enable nix package manager
+4. Install cool gnome extensions
+5. Create an authentification drive
+6. Clean up your system
+7. Limit CPU-usage of browser
+8. Turn wifi off and on again
+9. Setup a new REACT project
+10. Enable camera on Macbooks
+11. Restrict wake up from sleep to power button
+12. Install Docker
+13. Clean up Docker
+14. Install Dropbox file system
+15. Install Node
+16. Reinstall Zorin OS Desktop
+17. Update/install Shellcase
+18. Install Sunvox
+19. Repair Software Center
+20. Update flatpak apps
+"
+
+
+read -p "Please enter the task-ID to run the task: " ANSWER 
+case "$ANSWER" in 
+
+
+0)
+echo "0. Tusk is not defined"
+#Template for subscripts
+;;
+
+
+1)
+echo "1. Install base software package"
+sudo apt --yes install apt-transport-https curl
+sudo apt --yes install libsdl2-dev
+sudo apt --yes install mmv
+sudo apt --yes install nemo
+sudo apt --yes install flatpak
+sudo apt --yes install menulibre
+sudo apt --yes install synaptic
+sudo apt --yes install thunderbird
+sudo apt --yes install xdotool
+sudo apt --yes install celluloid
+sudo apt install nextcloud-desktop -y
+sudo apt install nautilus-nextcloud -y
+sudo add-apt-repository -y ppa:appimagelauncher-team/stable
+sudo apt-get --yes update
+sudo apt-get --yes install appimagelauncher
+echo "Adding Flatpak Support"
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install --user flathub com.mattjakeman.ExtensionManager
+flatpak install --user flathub org.onlyoffice.desktopeditors
+flatpak install --user flathub eu.scarpetta.PDFMixTool
+flatpak install --user flathub com.github.unrud.VideoDownloader
+flatpak run --command=gsettings com.github.unrud.VideoDownloader set com.github.unrud.VideoDownloader download-folder '~/Schreibtisch'
+flatpak override --user --filesystem='~/Schreibtisch:create' com.github.unrud.VideoDownloader
+;;
+
+
+2)
+echo "2. Install OnlyOffice"
+mkdir -p ~/.gnupg
+chmod 700 ~/.gnupg
+gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys CB2DE8E5
+chmod 644 /tmp/onlyoffice.gpg
+sudo chown root:root /tmp/onlyoffice.gpg
+sudo mv /tmp/onlyoffice.gpg /etc/apt/trusted.gpg.d/
+echo 'deb https://download.onlyoffice.com/repo/debian squeeze main' | sudo tee -a /etc/apt/sources.list.d/onlyoffice.list
+sudo apt-get update
+sudo apt-get install --yes onlyoffice-desktopeditors
+;;
+
+
+3)
+echo "3. Enable Nix package manager"
+echo "Preparing folders"
+mkdir /$HOME/.nix
+sudo mkdir /nix
+echo "Creating deamon"
+cat <<EOF >./nix-in-home.service
+[Unit]
+Description=Mounts nix-store im home
+
+[Service]
+User=root
+WorkingDirectory=/root
+ExecStart=mount -o bind /home/michaelburij/.nix /nix
+Restart=on-success
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo cp nix-in-home.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl start nix-in-home
+sudo systemctl enable nix-in-home
+echo "installing environment"
+sudo chown -R $USER /nix
+curl -L https://nixos.org/nix/install | sh
+source ~/.nix-profile/etc/profile.d/nix.sh
+echo "restart shell to start using nix"
+rm ./nix-in-home.service
+cd /$HOME
+touch /$HOME/.bashrc
+grep -q 'source ~/.nix-profile/etc/profile.d/nix.sh' '.bashrc' || bash -c 'echo "source ~/.nix-profile/etc/profile.d/nix.sh" >> .bashrc'
+;;
+
+
+4)
+echo "4. Install cool gnome extensions"
+sudo apt install -y wget curl jq unzip sed
+rm -f ./install-gnome-extensions.sh; wget -N -q "https://raw.githubusercontent.com/cyfrost/install-gnome-extensions/master/install-gnome-extensions.sh" -O ./install-gnome-extensions.sh && chmod +x install-gnome-extensions.sh && ./install-gnome-extensions.sh
+cat <<EOF >./links.txt
+https://extensions.gnome.org/extension/8/places-status-indicator/
+https://extensions.gnome.org/extension/4651/notification-banner-reloaded/
+https://extensions.gnome.org/extension/906/sound-output-device-chooser/
+https://extensions.gnome.org//extension/3733/tiling-assistant/
+https://extensions.gnome.org/extension/945/cpu-power-manager/
+EOF
+./install-gnome-extensions.sh --enable --file links.txt
+rm ./links.txt
+rm ./install-gnome-extensions.sh
+;;
+
+
+5)
+echo "5. Create an authentification drive"
+sudo add-apt-repository "deb https://apt.mcdope.org/ ./"
+sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 913558C8A5E552A7
+sudo apt-get update
+sudo apt install libpam-usb
+sudo pamusb-conf --add-device KeyDrive
+sudo pamusb-conf --add-user $USER
+pamusb-check $USER
+;;
+
+
+6)
+echo "6. Clean up your system"
+source ~/.nix-profile/etc/profile.d/nix.sh
+nix-collect-garbage -d
+flatpak uninstall --unused
+sudo apt-get autoremove
+sudo apt-get autoclean
+sudo find /tmp -ctime +10 -exec sudo rm -rf {} +
+sudo find /ver/tmp -ctime +10 -exec sudo rm -rf {} +
+sudo find /ver/log -ctime +10 -exec sudo rm -rf {} +
+sudo find /ver/spool -ctime +10 -exec sudo rm -rf {} +
+sudo apt-get clean
+aptitude purge ~c
+sudo journalctl --vacuum-time=3d
+set -eu
+snap list --all | awk '/disabled/{print $1, $3}' |
+    while read snapname revision; do
+        snap remove "$snapname" --revision="$revision"
+    done
+rm -rf ~/.cache/thumbnails/*
+find ~/.cache -depth -type f -mtime +365 -delete
+;;
+
+
+7)
+echo "7. Limit CPU-usage of browser"
+read -p "% of CPU internet browsers are able to use: " LIMIT 
+
+# Kill child processes (stop limiting CPU) on script exit.
+for sig in INT QUIT HUP TERM; do
+  trap "
+    pkill -P $$
+    trap - $sig EXIT
+    kill -s $sig "'"$$"' "$sig"
+done
+trap cleanup EXIT
+# Find and limit all child processes of all browsers.
+for name in firefox firefox-esr chromium chrome brave brave-browser-stable brave-browser
+do
+    for ppid in $(pgrep "$name")
+    do
+        cpulimit --pid="$ppid" --limit="$LIMIT" &
+        for pid in "$ppid" $(pgrep --parent "$ppid")
+        do
+            cpulimit --pid="$pid" --limit="$LIMIT" &
+        done
+    done
+done
+;;
+
+
+8)
+echo "8. Turn wifi off and on again"
+# sudo apt install tlp
+wifi off
+sleep 5
+wifi on
+;;
+
+
+9)
+#! /bin/bash
+echo "9. Setup a new REACT project"
+cd /home/$USER
+cd Desktop
+cd Schreibtisch
+echo "
+Please input the name of your new app. 
+This script will fail without error if you are going to use capital letters. 
+The project will be created on your Desktop.
+Your new app will be stored in hidden folder .code inside the project.
+"
+read appname
+mkdir $appname
+cd $appname
+enterapp='cd .code/'$appname
+touch  Readme.md
+touch  $appname.sh
+echo '#!/bin/bash' &>>$appname.sh
+echo 'code .' &>>$appname.sh
+echo $enterapp &>>$appname.sh
+echo 'npm start' &>>$appname.sh
+chmod +x $appname.sh
+touch  create_production_build.sh
+echo '#!/bin/bash' &>>create_production_build.sh
+echo $enterapp &>>create_production_build.sh
+echo 'npm run build' &>>create_production_build.sh
+echo '# sudo npm install -g serve' &>>create_production_build.sh
+echo 'serve -s build' &>>create_production_build.sh
+chmod +x create_production_build.sh
+touch  create_backend.sh
+echo '#!/bin/bash' &>>create_backend.sh
+echo $enterapp &>>create_backend.sh
+echo 'npm i json-server' &>>create_backend.sh
+echo 'echo "define following as server in the script section in your package.json"' &>>create_backend.sh
+echo 'echo "json-server --watch db.json --port 5000"' &>>create_backend.sh
+chmod +x create_backend.sh
+touch  db_run.sh
+echo '#!/bin/bash' &>>db_run.sh
+echo $enterapp &>>db_run.sh
+echo 'echo "to make it work you will need to create backend first"' &>>db_run.sh
+echo 'npm run server' &>>db_run.sh
+chmod +x db_run.sh
+touch  create_version.sh
+echo '#!/bin/bash' &>>create_version.sh
+echo 'rm Version_current.zip' &>>create_version.sh
+echo 'file-roller --add-to=Version_current.zip .code' &>>create_version.sh
+chmod +x create_version.sh
+touch  get_current_version.sh
+echo '#!/bin/bash' &>>get_current_version.sh
+echo 'rm -r -f .code' &>>get_current_version.sh
+echo 'unzip Version_current.zip' &>>get_current_version.sh
+chmod +x get_current_version.sh
+mkdir .code
+cd .code
+npx create-react-app $appname
+cd $appname
+npm i react-router-dom
+;;
+
+
+10)
+echo "8. Enable camera on Macbooks"
+sudo apt --yes install git
+sudo apt --yes install curl xzcat cpio
+git clone https://github.com/patjak/facetimehd-firmware.git
+cd facetimehd-firmware 
+make
+sudo make install 
+cd .. 
+sudo apt --yes install kmod libssl-dev checkinstall 
+git clone https://github.com/patjak/bcwc_pcie.git 
+cd bcwc_pcie 
+make
+sudo make install 
+sudo depmod 
+sudo modprobe -r bdc_pci
+sudo modprobe facetimehd
+echo "facetimehd"
+echo "copy the line above and write it in the end of the opening file, if it's not already there"
+cd .. 
+rm -rf ./bcwc_pcie
+rm -rf ./facetimehd-firmware
+grep -q 'facetimehd' '/etc/modules' || bash -c 'echo "facetimehd" >> /etc/modules'
+sudo gedit /etc/modules
+;;
+
+
+11)
+echo "9. Restrict wake up from sleep to power button"
+cat /proc/acpi/wakeup
+cat <<EOF >./killusb.service
+[Unit]
+Description=killusb
+
+[Service]
+ExecStart=/bin/bash -c "echo XHC1 >> /proc/acpi/wakeup; echo LID0 >> /proc/acpi/wakeup"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo cp killusb.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl start killusb
+sudo systemctl enable killusb
+rm ./killusb.service
+sleep 20
+;;
+
+
+12)
+echo "12. Install Docker"
+# Install Docker on Ubuntu Server x86_64/AMD64
+# source https://docs.docker.com/engine/install/ubuntu/
+echo "Updating apt package index..."
+sudo apt update
+sleep 10s
+yes | sudo apt install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+echo "Adding Docker official GPG key..."
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+sleep 10s
+echo "Adding Docker to apt repository..."
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sleep 10s
+echo "Updating System ...."
+sudo apt update
+sleep 10s
+echo "Installing Docker and ContainerD ...."
+yes | sudo apt install docker-ce docker-ce-cli containerd.io
+sleep 5s
+echo "Docker Installation completed!!!"
+sleep 5s
+echo "Installing Docker Compose...."
+yes | sudo apt install docker-compose docker-compose-plugin
+echo "Docker Compose Installation Completed!"
+docker --version
+docker-compose --version
+## add current user to docker group
+sudo usermod -aG docker $USER
+sudo chmod 666 /var/run/docker.sock
+;;
+
+
+13)
+echo "13. Clean up Docker"
+sudo docker stop $(sudo docker ps -a -q)
+sudo docker rm $(sudo docker ps -a -q)
+sudo docker rmi $(sudo docker images -qf "dangling=true")
+;;
+
+
+14)
+echo "14. Install Dropbox file system"
+sudo apt-get install python3-pip
+pip3 install dbxfs
+sudo mkdir /home/DBXFS
+sudo chown -R $USER:$USER /home/DBXFS
+/home/$USER/.local/bin/dbxfs /home/DBXFS
+echo "use the following command to start dbxfs or copy to make a .desktop-file"
+echo "/home/$USER/.local/bin/dbxfs"
+sleep 200
+;;
+
+
+
+15)
+echo "15. Install Node"
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+sudo apt install -y nodejs
+;;
+
+
+
+16)
+echo "16. Reinstall Zorin OS Desktop"
+sudo apt remove zorin-os-desktop
+sudo apt update
+sudo apt dist-upgrade
+sudo apt autoremove
+sudo apt clean
+sudo apt install zorin-os-desktop
+sudo shutdown -r now
+;;
+
+
+17)
+echo "17. Update/install Shellcase"
+echo "Removing previous version"
+sudo rm -r /opt/shellcase
+sudo rm /usr/local/bin/shellcase
+sudo rm /usr/share/applications/shellcase.desktop
+echo "Download SunVox from official server"
+wget https://burij.duckdns.org/index.php/s/NxQSP287y78FEcF/download
+unzip download
+rm download
+echo "Installation"
+sudo mkdir /opt/shellcase
+sudo mv 2202_Shellcase/* /opt/shellcase/
+rm -r 2202_Shellcase
+echo "Creating starters"
+chmod +x shellcase
+sudo ln -s /opt/shellcase/shellcase /usr/local/bin/
+echo "[Desktop Entry]
+Name=Shellcase
+Exec=shellcase 
+Icon=utilities-x-terminal
+Terminal=true
+Type=Application" | sudo tee /usr/share/applications/shellcase.desktop > /dev/null
+sudo chown -R $USER:$USER /opt/shellcase
+sudo chmod -R 755 /opt/shellcase
+echo "Shellcase is now installed on your system. You can start it with following commands from terminal:"
+echo "shellcase"
+;;
+
+
+18)
+echo "18. Install Sunvox"
+read -p "Please enter the version of sunvox, you want to install (Example: 2.1b): " VERSION 
+echo "Removing previous version"
+sudo rm -r /opt/sunvox
+sudo rm /usr/local/bin/sunvox
+sudo rm /usr/local/bin/sunvox_opengl
+sudo rm /usr/share/applications/sunvox.desktop
+sudo rm /usr/share/applications/sunvox-opengl.desktop
+echo "Download SunVox from official server"
+wget https://warmplace.ru/soft/sunvox/sunvox-$VERSION.zip
+wget https://warmplace.ru/soft/sunvox/images/icon.png
+# Unzip the downloaded file
+unzip sunvox-$VERSION.zip
+rm sunvox-$VERSION.zip
+echo "Installation"
+# Create a directory for SunVox
+sudo mkdir /opt/sunvox
+sudo mv icon.png sunvox/
+# Move the SunVox files to the new directory
+sudo mv sunvox/* /opt/sunvox/
+rm -r sunvox
+echo "Creating starters"
+# Create a symbolic link to the SunVox binary
+sudo ln -s /opt/sunvox/sunvox/linux_x86_64/sunvox /usr/local/bin/
+sudo ln -s /opt/sunvox/sunvox/linux_x86_64/sunvox_opengl /usr/local/bin/
+# Create a desktop file for SunVox
+echo "[Desktop Entry]
+Name=SunVox
+Exec=/opt/sunvox/sunvox/linux_x86_64/sunvox
+Icon=/opt/sunvox/icon.png
+Type=Application" | sudo tee /usr/share/applications/sunvox.desktop > /dev/null
+# Create a desktop file for SunVox
+echo "[Desktop Entry]
+Name=SunVox Open-GL
+Exec=/opt/sunvox/sunvox/linux_x86_64/sunvox_opengl
+Icon=/opt/sunvox/icon.png
+Type=Application" | sudo tee /usr/share/applications/sunvox-opengl.desktop > /dev/null
+# Set the permissions of the SunVox files
+sudo chown -R $USER:$USER /opt/sunvox
+sudo chmod -R 755 /opt/sunvox
+echo "Sunvox is now installed on your system. You can start it with following commands from terminal:"
+echo "sunvox"
+echo "sunvox_opengl"
+;;
+
+
+19)
+echo "19. Repair Software Center"
+sudo apt purge gnome-software ubuntu-software
+sudo apt autoremove
+sudo apt install gnome-software ubuntu-software
+rm -R ~/.cache/gnome-software
+;;
+
+
+20)
+echo "20. Update flatpak apps"
+flatpak update -y
+;;
+
+
+*)
+echo "Nothing to execute"
+;;
+
+esac
+echo "Everything done! Exiting..."
+sleep 10
