@@ -1,30 +1,26 @@
 #! /bin/bash
 echo "
-SHELLCASE 0.3
-Metascript for task automatisation.
-by burij
+SHELLCASE 0.3.9 || Metascript for task automatisation. || by burij
 
 Following tasks are avaible at the moment:
-1. Install base software package
-2. Install OnlyOffice
-3. Enable nix package manager
-4. Install cool gnome extensions
-5. Create an authentification drive
-6. Clean up your system
-7. Limit CPU-usage of browser
-8. Turn wifi off and on again
-9. Setup a new REACT project
+ 1. Install base software package
+ 2. Update/install Shellcase
+ 3. Update flatpak apps
+ 4. Install cool gnome extensions
+ 5. Create an authentification drive
+ 6. Clean up your system
+ 7. Limit CPU-usage of browser
+ 8. Turn wifi off and on again
+ 9. Setup a new REACT project
 10. Enable camera on Macbooks
 11. Restrict wake up from sleep to power button
 12. Install Docker
 13. Clean up Docker
-14. Install Dropbox file system
+14. Repair Software Center
 15. Install Node
 16. Reinstall Zorin OS Desktop
-17. Update/install Shellcase
-18. Install Sunvox
-19. Repair Software Center
-20. Update flatpak apps
+17. Reduce default home folders to Desktop and Templates
+18. Install/Update SunVox
 "
 
 
@@ -40,78 +36,78 @@ echo "0. Tusk is not defined"
 
 1)
 echo "1. Install base software package"
-sudo apt --yes install apt-transport-https curl
-sudo apt --yes install libsdl2-dev
-sudo apt --yes install mmv
-sudo apt --yes install nemo
-sudo apt --yes install flatpak
-sudo apt --yes install menulibre
-sudo apt --yes install synaptic
-sudo apt --yes install thunderbird
-sudo apt --yes install xdotool
-sudo apt --yes install celluloid
+sudo apt install apt-transport-https curl -y
+sudo apt install libsdl2-dev -y
+sudo apt install mmv -y
+sudo apt install nemo -y
+sudo apt install flatpak -y
+sudo apt install menulibre -y
+sudo apt install synaptic -y
+sudo apt install thunderbird -y
+sudo apt install xdotool -y
+sudo apt install celluloid -y
 sudo apt install nextcloud-desktop -y
 sudo apt install nautilus-nextcloud -y
-sudo add-apt-repository -y ppa:appimagelauncher-team/stable
+sudo apt install git -y
+sudo apt install gdebi -y
+sudo apt install tlp -y
+sudo apt install krename -y
+sudo apt install gnome-tweaks -y
 sudo apt-get --yes update
-sudo apt-get --yes install appimagelauncher
 echo "Adding Flatpak Support"
-flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub com.mattjakeman.ExtensionManager
-flatpak install --user flathub org.onlyoffice.desktopeditors
-flatpak install --user flathub eu.scarpetta.PDFMixTool
-flatpak install --user flathub com.github.unrud.VideoDownloader
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo -y
+echo "Adding Flatpaks"
+flatpak install --system flathub com.github.jeromerobert.pdfarranger
+flatpak install --system flathub com.google.Chrome -y
+flatpak install --system flathub org.onlyoffice.desktopeditors -y
+flatpak install --user flathub com.mattjakeman.ExtensionManager -y
+flatpak install --user flathub net.codeindustry.MasterPDFEditor -y
+flatpak install --user flathub com.visualstudio.code -y
+echo "Setup VideoDownloader"
+flatpak install --user flathub com.github.unrud.VideoDownloader -y
 flatpak run --command=gsettings com.github.unrud.VideoDownloader set com.github.unrud.VideoDownloader download-folder '~/Schreibtisch'
 flatpak override --user --filesystem='~/Schreibtisch:create' com.github.unrud.VideoDownloader
+echo "Optimize Software center"
+sudo snap remove snap-store
+sudo apt purge gnome-software-plugin-snap
+sudo apt install gnome-software-plugin-flatpak
 ;;
 
 
 2)
-echo "2. Install OnlyOffice"
-mkdir -p ~/.gnupg
-chmod 700 ~/.gnupg
-gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys CB2DE8E5
-chmod 644 /tmp/onlyoffice.gpg
-sudo chown root:root /tmp/onlyoffice.gpg
-sudo mv /tmp/onlyoffice.gpg /etc/apt/trusted.gpg.d/
-echo 'deb https://download.onlyoffice.com/repo/debian squeeze main' | sudo tee -a /etc/apt/sources.list.d/onlyoffice.list
-sudo apt-get update
-sudo apt-get install --yes onlyoffice-desktopeditors
+echo "2. Update/install Shellcase"
+echo "Removing previous version"
+sudo rm -r /opt/shellcase
+sudo rm /usr/local/bin/shellcase
+sudo rm /usr/share/applications/shellcase.desktop
+echo "Download SunVox from official server"
+wget https://burij.duckdns.org/index.php/s/NxQSP287y78FEcF/download
+unzip download
+rm download
+echo "Installation"
+sudo mkdir /opt/shellcase
+sudo mv 2202_Shellcase/* /opt/shellcase/
+rm -r 2202_Shellcase
+echo "Creating starters"
+chmod +x shellcase
+sudo ln -s /opt/shellcase/shellcase /usr/local/bin/
+echo "[Desktop Entry]
+Name=Shellcase
+Exec=shellcase 
+Icon=utilities-x-terminal
+Terminal=true
+Type=Application
+Categories=GNOME;GTK;Utility;" | sudo tee /usr/share/applications/shellcase.desktop > /dev/null
+sudo chown -R $USER:$USER /opt/shellcase
+sudo chmod -R 755 /opt/shellcase
+echo "Shellcase is now installed on your system. You can start it with following commands from terminal:"
+echo "shellcase"
 ;;
 
 
 3)
-echo "3. Enable Nix package manager"
-echo "Preparing folders"
-mkdir /$HOME/.nix
-sudo mkdir /nix
-echo "Creating deamon"
-cat <<EOF >./nix-in-home.service
-[Unit]
-Description=Mounts nix-store im home
-
-[Service]
-User=root
-WorkingDirectory=/root
-ExecStart=mount -o bind /home/michaelburij/.nix /nix
-Restart=on-success
-
-[Install]
-WantedBy=multi-user.target
-EOF
-sudo cp nix-in-home.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl start nix-in-home
-sudo systemctl enable nix-in-home
-echo "installing environment"
-sudo chown -R $USER /nix
-curl -L https://nixos.org/nix/install | sh
-source ~/.nix-profile/etc/profile.d/nix.sh
-echo "restart shell to start using nix"
-rm ./nix-in-home.service
-cd /$HOME
-touch /$HOME/.bashrc
-grep -q 'source ~/.nix-profile/etc/profile.d/nix.sh' '.bashrc' || bash -c 'echo "source ~/.nix-profile/etc/profile.d/nix.sh" >> .bashrc'
+echo "3. Update flatpak apps"
+flatpak update -y
 ;;
 
 
@@ -363,15 +359,15 @@ sudo docker rmi $(sudo docker images -qf "dangling=true")
 
 
 14)
-echo "14. Install Dropbox file system"
-sudo apt-get install python3-pip
-pip3 install dbxfs
-sudo mkdir /home/DBXFS
-sudo chown -R $USER:$USER /home/DBXFS
-/home/$USER/.local/bin/dbxfs /home/DBXFS
-echo "use the following command to start dbxfs or copy to make a .desktop-file"
-echo "/home/$USER/.local/bin/dbxfs"
-sleep 200
+echo "14. Repair Software Center"
+sudo apt purge gnome-software ubuntu-software
+sudo apt autoremove
+sudo apt install gnome-software ubuntu-software
+rm -R ~/.cache/gnome-software
+echo "Optimize Software center"
+sudo snap remove snap-store  # And anything you don't use of  snap list
+sudo apt purge gnome-software-plugin-snap
+sudo apt install gnome-software-plugin-flatpak
 ;;
 
 
@@ -397,38 +393,21 @@ sudo shutdown -r now
 
 
 17)
-echo "17. Update/install Shellcase"
-echo "Removing previous version"
-sudo rm -r /opt/shellcase
-sudo rm /usr/local/bin/shellcase
-sudo rm /usr/share/applications/shellcase.desktop
-echo "Download SunVox from official server"
-wget https://burij.duckdns.org/index.php/s/NxQSP287y78FEcF/download
-unzip download
-rm download
-echo "Installation"
-sudo mkdir /opt/shellcase
-sudo mv 2202_Shellcase/* /opt/shellcase/
-rm -r 2202_Shellcase
-echo "Creating starters"
-chmod +x shellcase
-sudo ln -s /opt/shellcase/shellcase /usr/local/bin/
-echo "[Desktop Entry]
-Name=Shellcase
-Exec=shellcase 
-Icon=utilities-x-terminal
-Terminal=true
-Type=Application" | sudo tee /usr/share/applications/shellcase.desktop > /dev/null
-sudo chown -R $USER:$USER /opt/shellcase
-sudo chmod -R 755 /opt/shellcase
-echo "Shellcase is now installed on your system. You can start it with following commands from terminal:"
-echo "shellcase"
+echo "17. Reduce default home folders to Desktop and Templates"
+cat <<EOF > ~/.config/user-dirs.dirs
+XDG_DESKTOP_DIR="$HOME/Schreibtisch"
+XDG_TEMPLATES_DIR="$HOME/Vorlagen"
+EOF
+
+cat <<EOF | sudo tee /etc/xdg/user-dirs.defaults >/dev/null
+DESKTOP=Desktop
+TEMPLATES=Templates
+EOF
 ;;
 
 
 18)
-echo "18. Install Sunvox"
-read -p "Please enter the version of sunvox, you want to install (Example: 2.1b): " VERSION 
+echo "18. Install/Update SunVox"
 echo "Removing previous version"
 sudo rm -r /opt/sunvox
 sudo rm /usr/local/bin/sunvox
@@ -436,11 +415,13 @@ sudo rm /usr/local/bin/sunvox_opengl
 sudo rm /usr/share/applications/sunvox.desktop
 sudo rm /usr/share/applications/sunvox-opengl.desktop
 echo "Download SunVox from official server"
-wget https://warmplace.ru/soft/sunvox/sunvox-$VERSION.zip
+versions=$(curl -s https://warmplace.ru/soft/sunvox/)
+latest_version=$(echo "$versions" | grep -oE "sunvox-[0-9]+\.[0-9]+[a-z]*\.zip" | sed 's/sunvox-//' | sed 's/\.zip//')
+wget "https://warmplace.ru/soft/sunvox/sunvox-${latest_version}.zip"
 wget https://warmplace.ru/soft/sunvox/images/icon.png
 # Unzip the downloaded file
-unzip sunvox-$VERSION.zip
-rm sunvox-$VERSION.zip
+unzip sunvox-${latest_version}.zip
+rm sunvox-${latest_version}.zip
 echo "Installation"
 # Create a directory for SunVox
 sudo mkdir /opt/sunvox
@@ -457,13 +438,17 @@ echo "[Desktop Entry]
 Name=SunVox
 Exec=/opt/sunvox/sunvox/linux_x86_64/sunvox
 Icon=/opt/sunvox/icon.png
-Type=Application" | sudo tee /usr/share/applications/sunvox.desktop > /dev/null
-# Create a desktop file for SunVox
+Type=Application
+Categories=AudioVideo;Audio;" | sudo tee /usr/share/applications/sunvox.desktop > /dev/null
+
 echo "[Desktop Entry]
 Name=SunVox Open-GL
 Exec=/opt/sunvox/sunvox/linux_x86_64/sunvox_opengl
 Icon=/opt/sunvox/icon.png
-Type=Application" | sudo tee /usr/share/applications/sunvox-opengl.desktop > /dev/null
+Type=Application
+Categories=AudioVideo;Audio;" | sudo tee /usr/share/applications/sunvox-opengl.desktop > /dev/null
+
+
 # Set the permissions of the SunVox files
 sudo chown -R $USER:$USER /opt/sunvox
 sudo chmod -R 755 /opt/sunvox
@@ -473,19 +458,8 @@ echo "sunvox_opengl"
 ;;
 
 
-19)
-echo "19. Repair Software Center"
-sudo apt purge gnome-software ubuntu-software
-sudo apt autoremove
-sudo apt install gnome-software ubuntu-software
-rm -R ~/.cache/gnome-software
-;;
 
 
-20)
-echo "20. Update flatpak apps"
-flatpak update -y
-;;
 
 
 *)
