@@ -1,6 +1,6 @@
 #! /bin/bash
 echo "
-SHELLCASE 0.3.9 || Metascript for task automatisation. || by burij
+SHELLCASE 0.4 || Metascript for task automatisation. || by burij
 
 Following tasks are avaible at the moment:
  1. Install base software package
@@ -21,6 +21,7 @@ Following tasks are avaible at the moment:
 16. Reinstall Zorin OS Desktop
 17. Reduce default home folders to Desktop and Templates
 18. Install/Update SunVox
+19. Install SSH-Server
 "
 
 
@@ -57,16 +58,21 @@ sudo apt-get --yes update
 echo "Adding Flatpak Support"
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo -y
 echo "Adding Flatpaks"
-flatpak install --system flathub com.github.jeromerobert.pdfarranger
+flatpak install --system flathub com.github.jeromerobert.pdfarranger -y
 flatpak install --system flathub com.google.Chrome -y
 flatpak install --system flathub org.onlyoffice.desktopeditors -y
 flatpak install --user flathub com.mattjakeman.ExtensionManager -y
 flatpak install --user flathub net.codeindustry.MasterPDFEditor -y
 flatpak install --user flathub com.visualstudio.code -y
+flatpak install --user flathub com.brave.Browser -y
+flatpak install --user flathub org.kde.kdenlive -y
 echo "Setup VideoDownloader"
 flatpak install --user flathub com.github.unrud.VideoDownloader -y
 flatpak run --command=gsettings com.github.unrud.VideoDownloader set com.github.unrud.VideoDownloader download-folder '~/Schreibtisch'
 flatpak override --user --filesystem='~/Schreibtisch:create' com.github.unrud.VideoDownloader
+echo "Setup Beekeeperstudio (will be able open databases on Desktop)"
+flatpak install --user flathub io.beekeeperstudio.Studio -y
+flatpak override --user --filesystem='~/Schreibtisch' io.beekeeperstudio.Studio
 echo "Optimize Software center"
 sudo snap remove snap-store
 sudo apt purge gnome-software-plugin-snap
@@ -81,7 +87,7 @@ sudo rm -r /opt/shellcase
 sudo rm /usr/local/bin/shellcase
 sudo rm /usr/share/applications/shellcase.desktop
 echo "Download SunVox from official server"
-wget https://burij.duckdns.org/index.php/s/NxQSP287y78FEcF/download
+wget https://nextcloud.burij.de/s/3d8H5zZzYARFK2c/download
 unzip download
 rm download
 echo "Installation"
@@ -458,7 +464,10 @@ echo "sunvox_opengl"
 ;;
 
 
-
+19)
+echo "17. Install SSH-Server"
+sudo apt install openssh-server -y
+;;
 
 
 

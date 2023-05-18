@@ -8,7 +8,7 @@ sudo rm /usr/share/applications/shellcase.desktop
 
 
 echo "Download SunVox from official server"
-wget https://burij.duckdns.org/index.php/s/NxQSP287y78FEcF/download
+wget https://nextcloud.burij.de/s/3d8H5zZzYARFK2c/download
 
 
 # Unzip the downloaded file
